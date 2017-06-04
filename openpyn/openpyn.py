@@ -323,6 +323,28 @@ def kill_vpn_processes():
         return
 
 
+<<<<<<< HEAD:openpyn/openpyn.py
+=======
+# Clears Firewall rules, applies basic rules.
+def clear_fw_rules():
+    verify_root_access("Root access needed to modify 'iptables' rules")
+    print("Flushing iptables INPUT and OUTPUT chains AND Applying default Rules")
+    subprocess.run(["sudo", "iptables", "-F", "OUTPUT"])
+    # allow all outgoing traffic
+    subprocess.run("sudo iptables -P OUTPUT ACCEPT", shell=True)
+
+    subprocess.run(["sudo", "iptables", "-F", "INPUT"])
+    subprocess.run(["sudo", "iptables", "-A", "INPUT", "-i", "lo", "-j", "ACCEPT"])
+    subprocess.run(["sudo", "iptables", "-A", "OUTPUT", "-o", "lo", "-j", "ACCEPT"])
+    subprocess.run("sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT", shell=True)
+    # best practice, stops spoofing
+    subprocess.run("sudo iptables -A INPUT -s 127.0.0.0/8 -j DROP", shell=True)
+    # drop anything else incoming
+    subprocess.run("sudo iptables -P INPUT DROP", shell=True)
+    return
+
+
+>>>>>>> master:openpyn.py
 def update_config_files():
     root.verify_root_access("Root access needed to write files in '/usr/share/openpyn/files'")
     try:
@@ -556,5 +578,90 @@ def connect(server, port, daemon, test):
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD:openpyn/openpyn.py
     main()
     sys.exit()
+=======
+    parser = argparse.ArgumentParser(
+        description="A python3 script to easily connect to and switch between, OpenVPN \
+        servers hosted by NordVPN. Quickly Connect to the least busy servers (using current \
+        data from Nordvpn website) with lowest latency from you. Tunnels DNS traffic through \
+        the VPN which normally (when using OpenVPN with NordVPN) goes through your ISP's DNS \
+        (still unencrypted, even if you use a thirdparty) and completely compromises Privacy!")
+    parser.add_argument(
+        '-v', '--version', action='version', version=__version__)
+    parser.add_argument(
+        '-s', '--server', help='server name, i.e. ca64 or au10',)
+    parser.add_argument(
+        '-u', '--udp', help='use port UDP-1194 instead of the default TCP-443',
+        action='store_true')
+    parser.add_argument(
+        '-c', '--country-code', type=str, help='Specifiy Country Code with 2 letters, i.e au,')
+    # use nargs='?' to make a positional arg optinal
+    parser.add_argument(
+        'country', nargs='?', help='Country Code can also be specified without "-c,"\
+         i.e "openpyn au"')
+    parser.add_argument(
+        '-a', '--area', type=str, help='Specifiy area, city name or state e.g \
+        "openpyn au -a victoria" or "openpyn au -a \'sydney\'"')
+    parser.add_argument(
+        '-d', '--daemon', help='Run script in the background as openvpn daemon',
+        action='store_true')
+    parser.add_argument(
+        '-m', '--max-load', type=int, default=70, help='Specifiy load threashold, \
+        rejects servers with more load than this, DEFAULT=70')
+    parser.add_argument(
+        '-t', '--top-servers', type=int, default=6, help='Specifiy the number of Top \
+         Servers to choose from the NordVPN\'s Sever list for the given Country, These will be \
+         Pinged. DEFAULT=6')
+    parser.add_argument(
+        '-p', '--pings', type=str, default="5", help='Specifiy number of pings \
+        to be sent to each server to determine quality, DEFAULT=5')
+    parser.add_argument(
+        '-T', '--toppest-servers', type=int, default=3, help='After ping tests \
+        the final server count to randomly choose a server from, DEFAULT=3')
+    parser.add_argument(
+        '-k', '--kill', help='Kill any running Openvnp process, very usefull \
+        to kill openpyn process running in background with "-d" switch',
+        action='store_true')
+    parser.add_argument(
+        '-x', '--kill-flush', help='Kill any running Openvnp process, AND Flush Iptables',
+        action='store_true')
+    parser.add_argument(
+        '--update', help='Fetch the latest config files from nord\'s site',
+        action='store_true')
+    parser.add_argument(
+        '-f', '--force-fw-rules', help='Enfore Firewall rules to drop traffic when tunnel breaks\
+        , Force disable DNS traffic going to any other interface', action='store_true')
+    parser.add_argument(
+        '-l', '--list', dest="list_servers", type=str, nargs='?', default="nope",
+        help='If no argument given prints all Country Names and Country Codes; \
+        If country code supplied ("-l us"): Displays all servers in that given\
+        country with their current load and openvpn support status. Works in \
+        conjuction with (-a | --area, and server types (--p2p, --tor) \
+        e.g "openpyn -l it --p2p --area milano"')
+    parser.add_argument(
+        '--p2p', help='Only look for servers with "Peer To Peer" support', action='store_true')
+    parser.add_argument(
+        '--dedicated', help='Only look for servers with "Dedicated IP" support', action='store_true')
+    parser.add_argument(
+        '--tor', dest='tor_over_vpn', help='Only look for servers with "Tor Over VPN" support', action='store_true')
+    parser.add_argument(
+        '--double', dest='double_vpn', help='Only look for servers with "Double VPN" support', action='store_true')
+    parser.add_argument(
+        '--anti-ddos', dest='anti_ddos', help='Only look for servers with "Anti DDos" support', action='store_true')
+    parser.add_argument(
+        '--test', help='Simulation only, do not actually connect to the vpn server',
+        action='store_true')
+
+    args = parser.parse_args()
+
+    main(
+        args.server, args.country_code, args.country, args.area, args.udp, args.daemon,
+        args.max_load, args.top_servers, args.pings, args.toppest_servers,
+        args.kill, args.kill_flush, args.update, args.list_servers,
+        args.force_fw_rules, args.p2p, args.dedicated, args.double_vpn,
+        args.tor_over_vpn, args.anti_ddos, args.test)
+
+sys.exit()
+>>>>>>> master:openpyn.py
